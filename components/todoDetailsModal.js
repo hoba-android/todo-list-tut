@@ -7,13 +7,13 @@ import {
   TouchableOpacity,
   TextInput,
   SafeAreaView,
-  FlatList,
   Keyboard,
   Animated,
 } from "react-native";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import colors from "../Colors";
 import { Swipeable } from "react-native-gesture-handler";
+import { FlatList } from "react-native-gesture-handler";
 
 const todoDetailsModal = ({ closeModal, data, updateList }) => {
   const [newTask, setNewTask] = useState("");
@@ -43,26 +43,34 @@ const todoDetailsModal = ({ closeModal, data, updateList }) => {
   const renderTodoItem = (todo, index) => {
     return (
       <Swipeable renderRightActions={(_, dragX) => righActions(dragX, index)}>
-        <View style={styles.todoContainer}>
-          <TouchableOpacity onPress={() => toggleTodoCompleted(index)}>
-            <Ionicons
-              name={todo.completed ? "ios-square" : "ios-square-outline"}
-              size={24}
-              color={colors.gray}
-              style={{ width: 32 }}
-            />
-          </TouchableOpacity>
-          <Text
-            style={[
-              styles.todo,
-              {
-                color: todo.completed ? colors.gray : colors.black,
-                textDecorationLine: todo.completed ? "line-through" : "none",
-              },
-            ]}
+        <View style={styles.todoMain}>
+          <View style={styles.todoContainer}>
+            <TouchableOpacity onPress={() => toggleTodoCompleted(index)}>
+              <Ionicons
+                name={todo.completed ? "ios-square" : "ios-square-outline"}
+                size={24}
+                color={colors.gray}
+                style={{ width: 32 }}
+              />
+            </TouchableOpacity>
+            <Text
+              style={[
+                styles.todo,
+                {
+                  color: todo.completed ? colors.gray : colors.black,
+                  textDecorationLine: todo.completed ? "line-through" : "none",
+                },
+              ]}
+            >
+              {todo.title}
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={deleteTodo}
+            style={{ paddingHorizontal: 13, marginTop: 10 }}
           >
-            {todo.title}
-          </Text>
+            <AntDesign name="delete" size={36} color={colors.red} />
+          </TouchableOpacity>
         </View>
       </Swipeable>
     );
@@ -188,6 +196,10 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: "center",
     justifyContent: "center",
+  },
+  todoMain: {
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   todoContainer: {
     flexDirection: "row",
