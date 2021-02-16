@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   FlatList,
   Modal,
+  ActivityIndicator,
 } from "react-native";
 import colors from "./Colors";
 import tempData from "./tempData";
@@ -31,8 +32,9 @@ const firebaseConfig = {
 
 export default function App() {
   const [modalVisible, setModalVisible] = useState(false);
-  const [lists, setLists] = useState(tempData);
+  const [lists, setLists] = useState([]);
   const [user, setUser] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!firebase.apps.length) {
@@ -52,9 +54,46 @@ export default function App() {
           });
       }
 
+      let uid = firebase.auth().currentUser.uid;
+      const unsubscribe = firebase
+        .firestore()
+        .collection("users")
+        .doc(uid)
+        .collection("lists")
+        .onSnapshot((snapshot) => {
+          const data = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          setLists(data);
+          setLoading(false);
+        });
+
       setUser(user);
     });
   }, []);
+
+  const addList2 = (list) => {
+    let uid = firebase.auth().currentUser.uid;
+    let ref = firebase
+      .firestore()
+      .collection("users")
+      .doc(uid)
+      .collection("lists");
+
+    ref.add(list);
+  };
+
+  const updateList2 = (list) => {
+    let uid = firebase.auth().currentUser.uid;
+    let ref = firebase
+      .firestore()
+      .collection("users")
+      .doc(uid)
+      .collection("lists");
+
+    ref.doc(list.id).update(list);
+  };
 
   const toggleMoadalVisiblitly = () => {
     setModalVisible(!modalVisible);
@@ -65,17 +104,35 @@ export default function App() {
   };
 
   const addList = (list) => {
-    setLists([...lists, { ...list, id: lists.length + 1, todos: [] }]);
+    /// local data
+    // setLists([...lists, { ...list, id: lists.length + 1, todos: [] }]);
+    /// firebase add list
+    addList2({
+      name: list.name,
+      color: list.color,
+      todos: [],
+    });
   };
 
   const updateList = (list) => {
-    setLists(
-      lists.map((item) => {
-        return item.id === list.id ? list : item;
-      })
-    );
+    // local
+    // setLists(
+    //   lists.map((item) => {
+    //     return item.id === list.id ? list : item;
+    //   })
+    // );
+
+    // firebas update
+    updateList2(list);
   };
 
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color={colors.blue} />
+      </View>
+    );
+  }
   return (
     <View style={styles.container}>
       <Modal
@@ -86,9 +143,6 @@ export default function App() {
         <AddListModal closeModal={toggleMoadalVisiblitly} addlist={addList} />
       </Modal>
 
-      <View>
-        <Text> User : {user.uid}</Text>
-      </View>
       <View style={{ flexDirection: "row" }}>
         <View style={styles.divider} />
         <Text style={styles.title}>
@@ -113,7 +167,7 @@ export default function App() {
           horizontal
           showsHorizontalScrollIndicator={false}
           data={lists}
-          key={(item, index) => index.toString()}
+          key={(item) => item.id.toString()}
           renderItem={({ item }) => renderList(item)}
           keyboardShouldPersistTaps="always"
         />

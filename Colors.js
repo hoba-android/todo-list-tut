@@ -5,4 +5,5 @@ export default colros = {
   white: "#fff",
   gray: "#A4A4A4",
   lighGray: "#CACACA",
+  red: "#D85963",
 };
